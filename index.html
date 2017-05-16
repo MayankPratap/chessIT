@@ -13,37 +13,46 @@
 
 	<div id="board" style="width: 400px"></div>
 
+	<br>
+
+	<div id="move-history" class="move-history">
+	</div>
+
 	<script>
 		var board;
 		var chess=new Chess();
 		console.log(chess.ascii());
 		//console.log(chess.board());
 
-		var getPieceValue=function(piece){
+		var getPieceValue = function (piece) {
+				var val=0;
+    		if (piece === null) {
+        	return 0;
+    		}
 
-			if(piece===null){
+      	if (piece.type === 'p') {
+            val=10;
+        }
+				else if (piece.type === 'r') {
+            val=50;
+        }
+				else if (piece.type === 'n') {
+            val=30;
+        }
+				else if (piece.type === 'b') {
+            val=30 ;
+        }
+				else if (piece.type === 'q') {
+            val=90;
+        }
+				else if (piece.type === 'k') {
+            val=900;
+        }
 
-				return 0;
-			}
+				return piece.color=='w'?val:-val;
 
-			if(piece.type==='p')
-				return piece.color==='b'?-10:10;
-			else if(piece=='n')  // Knight
-				return piece.color==='b'?-30:30;
-			else if(piece=='b')
-				return piece.color==='b'?-30:30;
+		};
 
-			else if(piece=='r')
-				return piece.color==='b'?-50:50;
-
-			else if(piece=='q')
-				return piece.color==='b'?-90:90;
-
-			else if(piece=='k')
-				return piece.color==='b'?-900:900;
-
-
-		}
 
 		var evaluateBoard=function(board){
 
@@ -74,30 +83,28 @@
 		//  Black is our AI which is minimising player
 		//  White is our AI which is maximising player
 
-		var minimax=function(depth,chess,isMinimisingPlayer){
-			//	console.log("Minimax called");
-				//console.log(isMinimisingPlayer);
-				//console.log(!isMinimisingPlayer);
+		var minimax=function(depth,chess,isMaximisingPlayer){
+			  console.log("Minimax called");
+				console.log(isMaximisingPlayer);
+				console.log(!isMaximisingPlayer);
 				if(depth==0){
 						// if result is -80 , it means black side has more material
 						// then we do negative of result it becomes +80
 						//  The more negative evaluateBoard returns result, the more black side is winning, then we make it a greater positive
 						var val=-evaluateBoard(chess.board());
 					//	console.log("Reached depth 0");
-
 						return val;
 				}
 
 				var possibleMoves=chess.ugly_moves();
 
-				if(isMinimisingPlayer){  // IsBlack
-					  // Minimises the actual Board values
+				if(isMaximisingPlayer){  // IsBlack
+					  // Minimises the actual Board values but since we return negative of evaluation it can be seen as maximising
 						var bestValue=-10000;
-					//	console.log("I am black");
+						//console.log("I am black");
 						for(var i=0;i<possibleMoves.length;++i){
 								chess.ugly_move(possibleMoves[i]);
-
-								bestValue=Math.max(bestValue,minimax(depth-1,chess,!isMinimisingPlayer));
+								bestValue=Math.max(bestValue,minimax(depth-1,chess,!isMaximisingPlayer));
 								chess.undo();
 						}
 
@@ -107,23 +114,20 @@
 				else{    // Is White
 
 						var bestValue=10000;
-					//	console.log("I am white");
+						console.log("I am white");
 
 						for(var i=0;i<possibleMoves.length;++i){
 
 								chess.ugly_move(possibleMoves[i]);
 
-								bestValue=Math.min(bestValue,minimax(depth-1,chess,!isMinimisingPlayer));
+								bestValue=Math.min(bestValue,minimax(depth-1,chess,!isMaximisingPlayer));
 								chess.undo();
 						}
 						return bestValue;
 
 				}
 
-
-
-
-		}
+		};
 
 		var findBestMove=function(){
 
@@ -137,7 +141,7 @@
 						chess.ugly_move(newMove);
 						var boardValue=minimax(2,chess,false);
 						chess.undo();
-						if(boardValue>bestValue){
+						if(boardValue>=bestValue){
 			 					bestValue=boardValue;
 								bestMove=newMove;
 						}
@@ -149,10 +153,27 @@
 
 		var playIt=function(){
 
-			var possibleMoves=chess.ugly_moves();
+				var possibleMoves=chess.ugly_moves();
 			// exit if game is over
-			if(chess.game_over()===true || chess.in_draw()===true || possibleMoves.length===0){
-				return;
+				if(chess.game_over()===true || chess.in_draw()===true || possibleMoves.length===0){
+						if(chess.in_draw()===true){
+
+								console.log("Match draw");
+								return;
+						}
+
+						if(chess.turn()=='b'){
+
+								console.log("White Side Wins");
+								return;
+						}
+						if(chess.turn()=='w'){
+
+								console.log("Black Side Wins");
+								return;
+
+						}
+
 			}
 
 			if(chess.turn()==='b'){
@@ -160,23 +181,38 @@
 				chess.ugly_move(move);
 
 			}
-			else{
+			else if(chess.turn()=='w'){
 
 				var move=findRandomMove();
 				chess.ugly_move(move);
 			}
 
 			board.position(chess.fen());
-			window.setTimeout(playIt,250);
+			renderMoveHistory(chess.history());
+			window.setTimeout(playIt,500);
 
 		};
+
+		var renderMoveHistory=function(moves){
+    	var historyElement = $('#move-history').empty();
+    	historyElement.empty();
+    	for (var i = 0; i < moves.length; i = i + 2) {
+        historyElement.append('<span>'+moves[i] + ' '+(moves[i + 1]?moves[i+1]:' ')+'</span><br>')
+    	}
+    	historyElement.scrollTop(historyElement[0].scrollHeight);
+
+		};
+
 
 
 		board=ChessBoard('board','start');
 
 
 
-		window.setTimeout(playIt,250);
+		window.setTimeout(playIt,200);
+
+
+
 
 
 	</script>
