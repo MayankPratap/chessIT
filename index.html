@@ -80,13 +80,11 @@
 			return randomMove;
 		};
 
-		//  Black is our AI which is minimising player
-		//  White is our AI which is maximising player
+		//  Black is our AI which is maximising player
+		//  White is our AI which is minimising player
 
 		var minimax=function(depth,chess,isMaximisingPlayer){
-			  console.log("Minimax called");
-				console.log(isMaximisingPlayer);
-				console.log(!isMaximisingPlayer);
+
 				if(depth==0){
 						// if result is -80 , it means black side has more material
 						// then we do negative of result it becomes +80
@@ -101,7 +99,7 @@
 				if(isMaximisingPlayer){  // IsBlack
 					  // Minimises the actual Board values but since we return negative of evaluation it can be seen as maximising
 						var bestValue=-10000;
-						//console.log("I am black");
+						
 						for(var i=0;i<possibleMoves.length;++i){
 								chess.ugly_move(possibleMoves[i]);
 								bestValue=Math.max(bestValue,minimax(depth-1,chess,!isMaximisingPlayer));
@@ -114,7 +112,6 @@
 				else{    // Is White
 
 						var bestValue=10000;
-						console.log("I am white");
 
 						for(var i=0;i<possibleMoves.length;++i){
 
