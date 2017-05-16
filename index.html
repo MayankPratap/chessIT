@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+  <link rel="stylesheet" href="chessboardjs-0.3.0/css/chessboard-0.3.0.css">
+	<script src="jquery/jquery-3.2.1.js"></script>
+	<script src="chessjs/chess.js"></script>  <!-- Move generatation library -->
+	<script src="chessboardjs-0.3.0/js/chessboard-0.3.0.js"></script>	<!--  Chess Board generation library  -->
+	<!-- All I have to do is to make an AI to select best moves -->
+</head>
+
+<body>
+
+	<div id="board" style="width: 400px"></div>
+
+	<script>
+		var board;
+		var chess=new Chess();
+		console.log(chess.ascii());
+		//console.log(chess.board());
+
+		var getPieceValue=function(piece){
+
+			if(piece===null){
+
+				return 0;
+			}
+
+			if(piece.type==='p')
+				return piece.color==='b'?-10:10;
+			else if(piece=='n')  // Knight
+				return piece.color==='b'?-30:30;
+			else if(piece=='b')
+				return piece.color==='b'?-30:30;
+
+			else if(piece=='r')
+				return piece.color==='b'?-50:50;
+
+			else if(piece=='q')
+				return piece.color==='b'?-90:90;
+
+			else if(piece=='k')
+				return piece.color==='b'?-900:900;
+
+
+		}
+
+		var evaluateBoard=function(board){
+
+			var total=0;
+
+			for(var i=0;i<8;++i){
+				for(var j=0;j<8;++j){
+					if(typeof getPieceValue(board[i][j])!=="undefined")  // This is a way to check undefined in javascript
+						total+=getPieceValue(board[i][j]);
+				}
+			}
+
+		//	console.log("Evaluation: "+total);
+			return total;
+
+		};
+
+		var findRandomMove=function(){
+			// Generate all the moves for a given position
+			var possibleMoves=chess.ugly_moves();
+			var randomMove=null;
+			var randomIndex=Math.floor(Math.random()*possibleMoves.length);
+			randomMove=possibleMoves[randomIndex];
+
+			return randomMove;
+		};
+
+		//  Black is our AI which is minimising player
+		//  White is our AI which is maximising player
+
+		var minimax=function(depth,chess,isMinimisingPlayer){
+			//	console.log("Minimax called");
+				//console.log(isMinimisingPlayer);
+				//console.log(!isMinimisingPlayer);
+				if(depth==0){
+						// if result is -80 , it means black side has more material
+						// then we do negative of result it becomes +80
+						//  The more negative evaluateBoard returns result, the more black side is winning, then we make it a greater positive
+						var val=-evaluateBoard(chess.board());
+					//	console.log("Reached depth 0");
+
+						return val;
+				}
+
+				var possibleMoves=chess.ugly_moves();
+
+				if(isMinimisingPlayer){  // IsBlack
+					  // Minimises the actual Board values
+						var bestValue=-10000;
+					//	console.log("I am black");
+						for(var i=0;i<possibleMoves.length;++i){
+								chess.ugly_move(possibleMoves[i]);
+
+								bestValue=Math.max(bestValue,minimax(depth-1,chess,!isMinimisingPlayer));
+								chess.undo();
+						}
+
+						return bestValue;
+				}
+
+				else{    // Is White
+
+						var bestValue=10000;
+					//	console.log("I am white");
+
+						for(var i=0;i<possibleMoves.length;++i){
+
+								chess.ugly_move(possibleMoves[i]);
+
+								bestValue=Math.min(bestValue,minimax(depth-1,chess,!isMinimisingPlayer));
+								chess.undo();
+						}
+						return bestValue;
+
+				}
+
+
+
+
+		}
+
+		var findBestMove=function(){
+
+				var possibleMoves=chess.ugly_moves();
+				var bestMove=null;
+				var bestValue=-10000;
+
+				for(var i=0;i<possibleMoves.length;++i){
+						var newMove=possibleMoves[i];
+						//console.log(newMove);
+						chess.ugly_move(newMove);
+						var boardValue=minimax(2,chess,false);
+						chess.undo();
+						if(boardValue>bestValue){
+			 					bestValue=boardValue;
+								bestMove=newMove;
+						}
+				}
+
+				return bestMove;
+
+		};
+
+		var playIt=function(){
+
+			var possibleMoves=chess.ugly_moves();
+			// exit if game is over
+			if(chess.game_over()===true || chess.in_draw()===true || possibleMoves.length===0){
+				return;
+			}
+
+			if(chess.turn()==='b'){
+				var move=findBestMove();
+				chess.ugly_move(move);
+
+			}
+			else{
+
+				var move=findRandomMove();
+				chess.ugly_move(move);
+			}
+
+			board.position(chess.fen());
+			window.setTimeout(playIt,250);
+
+		};
+
+
+		board=ChessBoard('board','start');
+
+
+
+		window.setTimeout(playIt,250);
+
+
+	</script>
+
+</body>
+
+</html>
