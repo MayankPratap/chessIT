@@ -49,7 +49,7 @@
             val=900;
         }
 
-				return piece.color=='w'?val:-val;
+				return piece.color=='w'?-val:+val;
 
 		};
 
@@ -86,24 +86,23 @@
 		var minimax=function(depth,chess,isMaximisingPlayer){
 
 				if(depth==0){
-						// if result is -80 , it means black side has more material
-						// then we do negative of result it becomes +80
-						//  The more negative evaluateBoard returns result, the more black side is winning, then we make it a greater positive
-						var val=-evaluateBoard(chess.board());
-					//	console.log("Reached depth 0");
+						// if result is +80 , it means black side has more material
+						var val=evaluateBoard(chess.board());
 						return val;
 				}
 
 				var possibleMoves=chess.ugly_moves();
 
 				if(isMaximisingPlayer){  // IsBlack
-					  // Minimises the actual Board values but since we return negative of evaluation it can be seen as maximising
+					  
 						var bestValue=-10000;
-						
+
 						for(var i=0;i<possibleMoves.length;++i){
+
 								chess.ugly_move(possibleMoves[i]);
 								bestValue=Math.max(bestValue,minimax(depth-1,chess,!isMaximisingPlayer));
 								chess.undo();
+
 						}
 
 						return bestValue;
@@ -116,10 +115,11 @@
 						for(var i=0;i<possibleMoves.length;++i){
 
 								chess.ugly_move(possibleMoves[i]);
-
 								bestValue=Math.min(bestValue,minimax(depth-1,chess,!isMaximisingPlayer));
 								chess.undo();
+
 						}
+
 						return bestValue;
 
 				}
@@ -133,8 +133,8 @@
 				var bestValue=-10000;
 
 				for(var i=0;i<possibleMoves.length;++i){
+
 						var newMove=possibleMoves[i];
-						//console.log(newMove);
 						chess.ugly_move(newMove);
 						var boardValue=minimax(2,chess,false);
 						chess.undo();
