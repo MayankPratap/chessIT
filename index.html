@@ -83,7 +83,7 @@
 		//  Black is our AI which is maximising player
 		//  White is our AI which is minimising player
 
-		var minimax=function(depth,chess,isMaximisingPlayer){
+		var minimax=function(depth,chess,alpha,beta,isMaximisingPlayer){
 
 				if(depth==0){
 						// if result is +80 , it means black side has more material
@@ -93,30 +93,49 @@
 
 				var possibleMoves=chess.ugly_moves();
 
-				if(isMaximisingPlayer){  // IsBlack
-					  
+				if(isMaximisingPlayer){  // IsBlack (Maximising Player)
+
 						var bestValue=-10000;
 
 						for(var i=0;i<possibleMoves.length;++i){
 
 								chess.ugly_move(possibleMoves[i]);
-								bestValue=Math.max(bestValue,minimax(depth-1,chess,!isMaximisingPlayer));
+								bestValue=Math.max(bestValue,minimax(depth-1,chess,alpha,beta,!isMaximisingPlayer));
 								chess.undo();
+
+								alpha=Math.max(alpha,bestValue);
+
+								if(beta<=alpha){  // If alpha becomes greater than alpha somewhere,
+																	// we have done enough work and we have no need to explore
+																	// other children ( moves and resulting board)
+
+										return bestValue;
+
+								}
 
 						}
 
 						return bestValue;
 				}
 
-				else{    // Is White
+				else{    // Is White ( Minimising Player)
 
 						var bestValue=10000;
 
 						for(var i=0;i<possibleMoves.length;++i){
 
 								chess.ugly_move(possibleMoves[i]);
-								bestValue=Math.min(bestValue,minimax(depth-1,chess,!isMaximisingPlayer));
+								bestValue=Math.min(bestValue,minimax(depth-1,chess,alpha,beta,!isMaximisingPlayer));
 								chess.undo();
+
+								beta=Math.min(beta,bestValue);
+
+								if(beta<=alpha){  // If minimum value(beta) that minimising player is able to achieve
+									 								// Is less than maximum value(alpha) that maximising player has
+																	// achieved till now.  Then we not need to go remaining children
+										return bestValue;
+
+								}
 
 						}
 
@@ -136,7 +155,7 @@
 
 						var newMove=possibleMoves[i];
 						chess.ugly_move(newMove);
-						var boardValue=minimax(2,chess,false);
+						var boardValue=minimax(3,chess,-10000,10000,false);
 						chess.undo();
 						if(boardValue>=bestValue){
 			 					bestValue=boardValue;
@@ -186,7 +205,7 @@
 
 			board.position(chess.fen());
 			renderMoveHistory(chess.history());
-			window.setTimeout(playIt,500);
+			window.setTimeout(playIt,250);
 
 		};
 
@@ -206,7 +225,7 @@
 
 
 
-		window.setTimeout(playIt,200);
+		window.setTimeout(playIt,250);
 
 
 
